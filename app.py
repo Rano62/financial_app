@@ -5,6 +5,41 @@ from dash import Dash, html, dcc, Input, Output
 import plotly.express as px
 import pandas as pd
 import logging
+import datetime
+from datetime import date
+from pymongo import MongoClient
+from pandas import DataFrame
+from mongopw import username, passw
+from ETF_tickers import ETF_tickers
+
+
+client = MongoClient("mongodb+srv://{}:{}@cluster0.fogd9.mongodb.net/test?retryWrites=true&w=majority".format(username,passw))
+dbs = client.list_database_names()
+#print(dbs)
+
+#select database ETF
+database = client['ETF']
+#select collection ETF
+ETF_collection = database.get_collection("ETF")
+
+def extract_multi_ETF_cours(ETF_list):
+    for i in ETF_tickers:
+        x   = []
+        cur=ETF_collection.find()
+        for j in cur:
+            x.append(j)
+    df = pd.DataFrame (x)
+    del df["_id"]
+
+    df_dateind=df.set_index('Date')
+
+    df_sorted =df_dateind.sort_index(ascending=False)
+    #df_sorted =df.sort_index(ascending=False)
+    df_sorted_newin=df_sorted.reset_index()
+    return df_sorted_newin
+
+
+all_ETF_data=extract_multi_ETF_cours(ETF_tickers)
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -12,7 +47,7 @@ app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 # assume you have a "long-form" data frame
 # see https://plotly.com/python/px-arguments/ for more options
-all_ETF_data=pd.read_csv('midterm.csv', parse_dates=['Date'])  
+#all_ETF_data=pd.read_csv('midterm.csv', parse_dates=['Date'])  
 
 fig = px.line(all_ETF_data, x="Date", y="Close",color="Ticker_ya",template='none')
 
