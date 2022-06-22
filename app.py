@@ -78,7 +78,7 @@ app.layout = html.Div(children=[
     html.Div(children=data_ETF_info.longBusinessSummary, id='etf_lg_businessSummary'),
     html.Div(children=[
         html.Label('ETF sélectionné'),
-        dcc.Dropdown(all_ETF_data['Ticker_ya'].unique(), 'CSSPX.MI',id='xaxis-column'),
+        dcc.Dropdown(all_ETF_data['Ticker_ya'].unique(), 'CSSPX.MI',id='xaxis-column',style={"width": "50%"}),
     ]),
     
     dcc.Graph(
@@ -95,8 +95,9 @@ app.layout = html.Div(children=[
         id='year-slider'
     ),
              
-    html.Div("Secteur de l'ETF par poids"),
+    
     dbc.Row([
+        html.Div("Secteur de l'ETF par poids"),
         dbc.Col( 
             dbc.Container([
                             dash_table.DataTable(
@@ -130,7 +131,9 @@ app.layout = html.Div(children=[
                     ]),
         md=6
         ),
-    ]),
+    ],
+    justify ='center',
+    ),
     
     dcc.Graph(
         id='life-exp-vs-gdp',
