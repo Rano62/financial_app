@@ -1,12 +1,12 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
+
+from typing import Container
 from dash import Dash, html, dcc, Input, Output, dash_table
 import plotly.express as px
 import pandas as pd
 #from pandas import DataFrame
-from mongopw import username, passw
-from ETF_tickers import ETF_tickers
 from datahisto import all_ETF_data
 from data_info import data_ETF_info, extract_ETF_info, sectorweight, data_holding
 import dash_bootstrap_components as dbc
@@ -24,7 +24,9 @@ import dash_bootstrap_components as dbc
 #external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 external_stylesheets=[dbc.themes.MINTY, dbc.icons.BOOTSTRAP]
 
-app = Dash(__name__, external_stylesheets=external_stylesheets,title='ETF Analytics')
+app = Dash(__name__, external_stylesheets=external_stylesheets,title='ETF Analytics',meta_tags=[
+        {"name": "viewport", "content": "width=device-width, initial-scale=1"},
+    ],)
 #assets_external_path
 
 #app.scripts.config.serve_locally = False
@@ -49,7 +51,9 @@ fig3 = px.scatter(df, x="gdp per capita", y="life expectancy",
                 
 #                 )
 nav = dbc.Nav(
-    [   html.I(className="bi bi-bank", style={'height':50, 'width':50}),
+    dbc.Container(
+        dbc.Row(
+    [   html.I(className="bi bi-house", style={"font-size": "40px","width": "10%"}),
         dbc.NavItem(dbc.NavLink("ETF", active=True, href="/ETF")),
         dbc.NavItem(dbc.NavLink("Indices", href="/Indices")),
         dbc.NavItem(dbc.NavLink("Analyses", href="/Analyses")),
@@ -60,12 +64,17 @@ nav = dbc.Nav(
             nav=True,
         ),
     ],
+        align="center"
+        ),
+        class_name="mx-0"
+    ),
     pills=True, 
     justified=True,
+    
     )
 
 
-icon=  html.I(className="bi bi-bank"),
+#icon=  html.I(className="bi bi-bank"),
                 
 
 
@@ -73,17 +82,24 @@ app.layout = html.Div(children=[
     
     nav,
 
-    html.H1(children='Analyse ETF par thématique'),
+    dbc.Container(
+        html.H1(children='Analyse ETF par thématique'),
+        class_name="mx-0"
+        ),
+     dbc.Col(  
+    dbc.Container(
+        [
     html.H2(children=data_ETF_info.longName, id='etf_lg_name'),
     html.Div(children=data_ETF_info.longBusinessSummary, id='etf_lg_businessSummary'),
     html.Div(children=[
         html.Label('ETF sélectionné'),
-        dcc.Dropdown(all_ETF_data['Ticker_ya'].unique(), 'CSSPX.MI',id='xaxis-column',style={"width": "50%"}),
+        dcc.Dropdown(all_ETF_data['Ticker_ya'].unique(), 'CSSPX.MI',id='xaxis-column',style={"width": "100%"}),
     ]),
     
     dcc.Graph(
         id='example-graph',
-        figure=fig
+        figure=fig,
+        style={"height": "100%","width": "100%"}
     ),
 
     dcc.RangeSlider(
@@ -94,12 +110,17 @@ app.layout = html.Div(children=[
         marks={str(date): str(date) for date in all_ETF_data['Date'].dt.year.unique()},
         id='year-slider'
     ),
+        ],
+        class_name ="py-4 my-2"
+    ),
+     width="auto"
+     ),
              
-    
+    dbc.Container(
     dbc.Row([
-        html.Div("Secteur de l'ETF par poids"),
+        html.Div("Secteur de l'ETF par poids",className ="py-4"),
         dbc.Col( 
-            dbc.Container([
+            #dbc.Container([
                             dash_table.DataTable(
                             data= sectorweight('CSSPX.MI').to_dict('records'),
                             #columns=[{"name": i, "id": i} for i in sectorweight('CSSPX.MI').columns],
@@ -110,9 +131,10 @@ app.layout = html.Div(children=[
                                 'fontWeight': 'bold'
                                 },
                             ),
-            ]),
+            #]),
         md=4
-        ),       
+        ),  
+         
 
         dbc.Col( 
                     dbc.Container([
@@ -134,10 +156,13 @@ app.layout = html.Div(children=[
     ],
     justify ='center',
     ),
+    class_name ="bg-light py-4 my-2 fluid"
+    ),
     
     dcc.Graph(
         id='life-exp-vs-gdp',
-        figure=fig3
+        figure=fig3,
+        style={"height": "100%","width": "100%"}
     ),
 ])
 
@@ -184,30 +209,48 @@ def update_figure(xaxis_column_name,selected_year):
     Input('xaxis-column', 'value')
 )
 def update_output_div(input_value):
-    ETF_name= extract_ETF_info(input_value)
-    #logging.warning(input_value)
-    #logging.warning(ETF_name.longName[0])
-    ETF_lg_name=ETF_name.longName[0]
-    return ETF_lg_name
+    if input_value:
+
+        ETF_name= extract_ETF_info(input_value)
+        #logging.warning(input_value)
+        #logging.warning(ETF_name.longName[0])
+        ETF_lg_name=ETF_name.longName[0]
+        return ETF_lg_name
+
+    
+
 @app.callback(
     Output('etf_lg_businessSummary', 'children'),
     Input('xaxis-column', 'value')
 )
 def update_output_div(input_value):
-    ETF_name= extract_ETF_info(input_value)
-    #logging.warning(input_value)
-    #logging.warning(ETF_name.longName[0])
-    ETF_lg_businessSummary=ETF_name.longBusinessSummary[0]
-    return ETF_lg_businessSummary
+    if input_value:
+        ETF_name= extract_ETF_info(input_value)
+        #logging.warning(input_value)
+        #logging.warning(ETF_name.longName[0])
+        ETF_lg_businessSummary=ETF_name.longBusinessSummary[0]
+        return ETF_lg_businessSummary
+    
 
 
 @app.callback(
    Output('sect_weight', 'data'),
     Input('xaxis-column', 'value'))
 def update_table(input_value):
-   ETF_name_sectorweight=sectorweight(input_value).to_dict('records')
-   #columns= [{"name": i, "id": i} for i in sectorweight(input_value).columns],
-   return ETF_name_sectorweight
+    if input_value:
+        ETF_name_sectorweight=sectorweight(input_value).to_dict('records')
+        #columns= [{"name": i, "id": i} for i in sectorweight(input_value).columns],
+        return ETF_name_sectorweight
+
+
+@app.callback(
+   Output('holding_stocks', 'data'),
+    Input('xaxis-column', 'value'))
+def update_table(input_value):
+    if input_value:
+        ETF_holding=data_holding(input_value).to_dict('records')
+        #columns= [{"name": i, "id": i} for i in sectorweight(input_value).columns],
+        return ETF_holding        
 
 if __name__ == '__main__':
     app.run_server(debug=True)

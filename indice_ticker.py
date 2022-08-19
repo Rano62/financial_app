@@ -1,0 +1,1 @@
+indices_tickers=['^GSPC','^DJI','^IXIC','^VIX','^FTSE','^GDAXI','^FCHI','^STOXX50E','^N225','^HSI']
