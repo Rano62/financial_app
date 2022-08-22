@@ -7,9 +7,10 @@ from dash import Dash, html, dcc, Input, Output, dash_table
 import plotly.express as px
 import pandas as pd
 #from pandas import DataFrame
-from datahisto import all_ETF_data
+from read_datahisto_multi import all_ETF_data
 from data_info import data_ETF_info, extract_ETF_info, sectorweight, data_holding
 import dash_bootstrap_components as dbc
+from read_indiceshisto_multi import all_indices_data
 
 
 # external_stylesheets = [
@@ -36,6 +37,7 @@ app = Dash(__name__, external_stylesheets=external_stylesheets,title='ETF Analyt
 #all_ETF_data=pd.read_csv('midterm.csv', parse_dates=['Date'])  
 
 fig = px.line(all_ETF_data, x="Date", y="Close",color="Ticker_ya",template='none')
+fig_indices = px.line(all_indices_data, x="Date", y="Close",color="Ticker_ya",template='none')
 
 df = pd.read_csv('https://gist.githubusercontent.com/chriddyp/5d1ea79569ed194d432e56108a04d188/raw/a9f9e8076b837d541398e999dcbac2b2826a81f8/gdp-life-exp-2007.csv')
 
@@ -111,9 +113,10 @@ app.layout = html.Div(children=[
         id='year-slider'
     ),
         ],
-        class_name ="py-4 my-2"
+        class_name ="py-4 my-2"                 #py padding top and bottom
     ),
-     width="auto"
+     #width="auto",
+     #class_name="mx-0"                         #mx margin left and right
      ),
              
     dbc.Container(
@@ -162,6 +165,12 @@ app.layout = html.Div(children=[
     dcc.Graph(
         id='life-exp-vs-gdp',
         figure=fig3,
+        style={"height": "100%","width": "100%"}
+    ),
+
+    dcc.Graph(
+        id='ind-graph',
+        figure=fig_indices,
         style={"height": "100%","width": "100%"}
     ),
 ])
